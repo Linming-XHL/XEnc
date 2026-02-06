@@ -73,7 +73,7 @@ jobs:
           name: ios-build
           path: build/ios
 
-  # 构建Android版本
+  # 构建Android版本（仅ARMv7和ARMv8）
   build-android:
     runs-on: ubuntu-latest
     steps:
@@ -86,12 +86,48 @@ jobs:
       - run: flutter build apk --target-platform=android-arm
       # 构建ARMv8版本
       - run: flutter build apk --target-platform=android-arm64
-      # 构建x86版本
-      - run: flutter build apk --target-platform=android-x86
-      # 构建x64版本
-      - run: flutter build apk --target-platform=android-x64
       - name: Upload Android builds
         uses: actions/upload-artifact@v4
         with:
           name: android-builds
           path: build/app/outputs/apk
+
+  # 创建GitHub Release
+  create-release:
+    needs: [build-windows, build-linux, build-macos, build-ios, build-android]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download Windows build
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-build
+          path: ./artifacts/windows
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-build
+          path: ./artifacts/linux
+      - name: Download MacOS build
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-build
+          path: ./artifacts/macos
+      - name: Download iOS build
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-build
+          path: ./artifacts/ios
+      - name: Download Android builds
+        uses: actions/download-artifact@v4
+        with:
+          name: android-builds
+          path: ./artifacts/android
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/**/*
+          generate_release_notes: true
+          tag_name: v${{ github.run_number }}
