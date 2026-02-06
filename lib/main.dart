@@ -84,8 +84,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _decryptFile() async {
     try {
       final result = await FilePicker.platform.pickFiles(
-        type: FileType.any,
         allowedExtensions: ['mp4'],
+        withData: false,
       );
 
       if (result != null) {
